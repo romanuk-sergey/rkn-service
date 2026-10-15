@@ -1,0 +1,59 @@
+{% extends '@!EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{{ 'Актуальный список'|trans }}{% endblock %}
+
+{% block page_actions %}
+    <div class="global-actions">
+        <a class="action-new btn btn-primary" href="{{ path('actualize-social-list-v1') }}">
+            <span class="action-label">Запросить список с помощью ЭП</span>
+        </a>
+        <a class="action-new btn btn-primary" href="{{ path('actualize-social-list-v2') }}">
+            <span class="action-label">Запросить список с помощью Л/П</span>
+        </a>
+    </div>
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-header">Памятка</div>
+                <div class="card-body">
+                    <p class="card-text">Для работы метода получения списка социально значимых ресурсов, через
+                        логин/пароль, нужно провести 2-х факторную авторизацию на <a
+                                href="https://service.rkn.gov.ru/activity" target="_blank">портале сервиса РКН</a>.
+                        Авторизоваться на портале может Константин Костров, который зарегистрирован и имеет доступ.</p>
+                    <p>На странице портала генерируется логин/пароль, а также указывается ip-адрес проекта, который
+                        будет запрашивать список социально значимых ресурсов</p>
+                    <p>Полученный логин/пароль требуется указать в env файле проекта</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <dl class="datalist">
+                <div class="data-row field-text">
+                    <dt>id</dt>
+                    <dd>{{ fields['id'] }}</dd>
+                </div>
+                <div class="data-row field-text">
+                    <dt>Дата обновления</dt>
+                    <dd>{{ fields.updateTime|date("Y-m-d H:i:s") }}</dd>
+                </div>
+                <div class="data-row field-text">
+                    <dt>Дата последнего запроса</dt>
+                    <dd>{{ rknLastDate.updateTime|date("Y-m-d H:i:s") }}</dd>
+                </div>
+
+                <div class="data-row field-text">
+                    <dt>Ресурсы</dt>
+                    <dd>
+                        {% include '/admin/resources.html.twig' with {'field' : {'value' : entity.getContentDtos()}} %}
+                    </dd>
+                </div>
+
+            </dl>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,77 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    secret.directory: '%kernel.project_dir%/secret'
+    mart.operator_name: '%env(OPERATOR_NAME)%'
+    mart.inn: '%env(INN)%'
+    mart.ogrn: '%env(OGRN)%'
+    mart.email: '%env(EMAIL)%'
+    rkn.base_url: '%env(RKN_BASE_URL)%'
+    rkn.base_url_v2: '%env(RKN_BASE_URL_V2)%'
+    rkn.login: '%env(RKN_LOGIN)%'
+    rkn.password: '%env(RKN_PASSWORD)%'
+    social.api_token: '%env(SOCIAL_API_TOKEN)%'
+    social.telegram_url: '%env(SOCIAL_TELEGRAM_URL)%'
+    social.trueconf_url: '%env(SOCIAL_TRUECONF_URL)%'
+    social.social_telegram_chat_id: '%env(SOCIAL_TELEGRAM_CHAT_ID)%'
+    social.social_trueconf_chat_id: '%env(SOCIAL_TRUECONF_CHAT_ID)%'
+    api.token: '%env(API_TOKEN)%'
+    emails.from: '%env(EMAILS_FROM)%'
+    email.subject: '%env(EMAIL_SUBJECT)%'
+    email.errors.subject: '%env(EMAIL_ERRORS_SUBJECT)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            - '../src/Tests/'
+            - '../src/Twig/'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    App\Entity\Dto\RequestData:
+        arguments:
+            - '%mart.operator_name%'
+            - '%mart.inn%'
+            - '%mart.ogrn%'
+            - '%mart.email%'
+
+    App\Facade\SocialFacade:
+        arguments:
+            $telegramUrl: '%social.telegram_url%'
+            $trueconfUrl: '%social.trueconf_url%'
+            $token: '%social.api_token%'
+            $telegramChatId: '%social.social_telegram_chat_id%'
+            $trueconfChatId: '%social.social_trueconf_chat_id%'
+
+    App\Facade\RknFacadeInterface:
+        arguments:
+            $baseUrl: '%rkn.base_url%'
+        class: App\Facade\RknFacade
+
+    App\Facade\RknFacadeInterfaceV2:
+        arguments:
+            $baseUrl: '%rkn.base_url_v2%'
+            $login: '%rkn.login%'
+            $password: '%rkn.password%'
+        class: App\Facade\RknFacadeV2
+
+    App\EventSubscriber\EmailSubscriber:
+        arguments:
+            $emailsFrom: '%emails.from%'
+            $emailSubject: '%email.subject%'
+            $emailErrorsSubject: '%email.errors.subject%'

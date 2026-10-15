@@ -1,0 +1,55 @@
+{% for addedMessage in changesSocList.getAdded %}
+    <div>
+        Добавлен ресурс <i>{{ addedMessage.getResourceName }}</i>.
+        <br>Добавлен домен:<br><i> {{ addedMessage.getDomain|join('<br>')|raw }}</i>
+        <br>Добавлен ip адрес:<br><i> {{ addedMessage.getIpSubnet|join('<br>')|raw }} </i>
+    </div>
+{% endfor %}
+
+{% for changedMessage in changesSocList.getChanged %}
+    <br><br>
+    {% if changedMessage.getNewResourceName %}
+        <div>
+            Ресурс <i> {{ changedMessage.getOldResourceName }} </i>, домен <i>{{ changedMessage.getDomain }}</i>,
+            изменён:
+            <br>На ресурс <i> {{ changedMessage.getNewResourceName }} </i>, домен <i> {{ changedMessage.getDomain }}</i>
+        </div>
+    {% endif %}
+
+    {% if changedMessage.getAddedDomain %}
+        <div>
+            Ресурс <i> {{ changedMessage.getOldResourceName }} </i>, домен <i>{{ changedMessage.getDomain }}</i>.
+            <br>Добавлен домен:<i> {{ changedMessage.getAddedDomain|join("<br>")|raw }} </i>
+        </div>
+    {% endif %}
+
+    {% if changedMessage.getRemovedDomain %}
+        <div>
+            Ресурс <i> {{ changedMessage.getOldResourceName }} </i>, домен <i>{{ changedMessage.getDomain }}</i>.
+            <br>Удалён домен:<i> {{ changedMessage.getRemovedDomain|join("<br>")|raw }} </i>
+        </div>
+    {% endif %}
+
+    {% if changedMessage.getAddedIpSubnet %}
+        <div>
+            Ресурс <i> {{ changedMessage.getOldResourceName }} </i>, домен <i>{{ changedMessage.getDomain }}</i>.
+            <br>Добавлен ip адрес:<i> {{ changedMessage.getAddedIpSubnet|join("<br>")|raw }} </i>
+        </div>
+    {% endif %}
+
+    {% if changedMessage.getRemovedIpSubnet %}
+        <div>
+            Ресурс <i> {{ changedMessage.getOldResourceName }} </i>, домен <i>{{ changedMessage.getDomain }}</i>.
+            <br>Удалён ip адрес:<i> {{ changedMessage.getRemovedIpSubnet|join("<br>")|raw }} </i>
+        </div>
+    {% endif %}
+{% endfor %}
+
+{% for removedMessage in changesSocList.getRemoved %}
+    <br><br>
+    <div>
+        Удалён ресурс <i>{{ removedMessage.getResourceName }}</i>.
+        <br>Удалён домен:<br><i> {{ removedMessage.getDomain|join("<br>")|raw }}</i>
+        <br>Удалён ip адрес:<br><i> {{ removedMessage.getIpSubnet|join("<br>")|raw }} </i>
+    </div>
+{% endfor %}

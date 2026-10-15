@@ -1,0 +1,51 @@
+{% extends '@!EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{{ 'Электронная подпись'|trans }}{% endblock %}
+
+{% block page_actions %}
+    {% if(entity) %}
+        <div class="global-actions">
+            <a class="action-new btn btn-primary" href="{{ path('private-key-delete') }}">
+                <span class="action-label">Удалить электронную подпись</span>
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-12">
+            <dl class="datalist">
+                {% if(entity) %}
+                    <div class="data-row field-text">
+                        <dt>id</dt>
+                        <dd>{{ entity.getId }}</dd>
+                    </div>
+                    <div class="data-row field-text">
+                        <dt>Путь до электронной подписи</dt>
+                        <dd>{{ entity.getPath }}</dd>
+                    </div>
+                    <div class="data-row field-text">
+                        <dt>Дата Создания</dt>
+                        <dd>{{ entity.getCreatedAt|date("Y-m-d H:i:s") }}</dd>
+                    </div>
+                {% else %}
+                    {{ form_start(form) }}
+
+                    {{ form_errors(form) }}
+
+                    <div>
+                        {{ form_widget(form.path) }}
+                        {{ form_help(form.path) }}
+                    </div>
+                    <div>
+                        {{ form_row(form.password) }}
+                    </div>
+                    <br>
+                    <button type="submit">Загрузить</button>
+                    {{ form_end(form) }}
+                {% endif %}
+            </dl>
+        </div>
+    </div>
+{% endblock %}

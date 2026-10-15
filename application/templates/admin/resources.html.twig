@@ -1,0 +1,17 @@
+{% for dto in field.value %}
+    <b>{{ dto.getResourceName() }}</b> -
+    {% for domain in dto.getDomain() %}
+        {{ domain }}
+        {% if not loop.last %}
+            ,&nbsp;
+        {% endif %}
+    {% endfor %}
+    <br>
+    {% for ipSubnet in dto.getIpSubnet() %}
+        {{ ipSubnet }}
+        <br>
+    {% endfor %}
+    {% if not loop.last %}
+        <hr>
+    {% endif %}
+{% endfor %}

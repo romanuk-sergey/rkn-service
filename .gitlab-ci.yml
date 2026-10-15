@@ -1,0 +1,115 @@
+stages:
+  - update
+  - build
+  - push
+  - deploy
+  - migrations
+
+update_stage:
+  stage: update
+  only: 
+    - deploy/stage
+  tags:
+    - rkn-service-stage-ssh-runner
+  script:
+    - cd /mnt/gfs/rkn-service/src/
+    - git checkout deploy/stage
+    - git branch
+    - git pull
+
+build_stage:
+  stage: build
+  only: 
+    - deploy/stage
+  tags:
+    - rkn-service-stage-ssh-runner
+  script:
+    - cd /mnt/gfs/rkn-service/
+    - docker build --network=host --no-cache -t coddit/rkn-service-stage:latest .
+
+push_stage:
+  stage: push
+  only: 
+    - deploy/stage
+  tags:
+    - rkn-service-stage-ssh-runner
+  script:
+    - docker tag coddit/rkn-service-stage:latest 172.22.221.67:5000/coddit/rkn-service-stage:latest
+    - docker push 172.22.221.67:5000/coddit/rkn-service-stage:latest
+
+deploy_stage:
+  stage: deploy
+  only: 
+    - deploy/stage
+  tags:
+    - rkn-service-stage-ssh-runner
+  before_script:
+    - docker --host stage-t1 pull 172.22.221.67:5000/coddit/rkn-service-stage:latest
+    - docker --host stage-t2 pull 172.22.221.67:5000/coddit/rkn-service-stage:latest
+    - docker --host stage-t3 pull 172.22.221.67:5000/coddit/rkn-service-stage:latest
+  script:
+    - docker service update --force rkn-service_rkn-service
+
+migrations_stage:
+  stage: migrations
+  only: 
+    - deploy/stage
+  tags:
+    - rkn-service-stage-ssh-runner
+  script:
+    - sleep 40
+    - docker --host $(docker stack ps -q -f name=rkn-service_rkn-service -f "desired-state=running" --format "{{.Node}}" rkn-service) exec $(docker --host $(docker stack ps -q -f name=rkn-service_rkn-service -f "desired-state=running" --format "{{.Node}}" rkn-service) ps -q -f name=rkn-service_rkn-service) php /app/bin/console doctrine:migration:migrate -n
+
+update_production:
+  stage: update
+  only: 
+    - deploy/production
+  tags:
+    - rkn-service-stage-ssh-runner
+  script:
+    - cd /mnt/gfs/rkn-service/src/
+    - git checkout deploy/production
+    - git branch
+    - git pull
+
+build_production:
+  stage: build
+  only: 
+    - deploy/production
+  tags:
+    - rkn-service-stage-ssh-runner
+  script:
+    - cd /mnt/gfs/rkn-service/
+    - docker build --network=host --no-cache -t coddit/rkn-service-prod:latest .
+
+push_production:
+  stage: push
+  only: 
+    - deploy/production
+  tags:
+    - rkn-service-stage-ssh-runner
+  script:
+    - docker tag coddit/rkn-service-prod:latest 172.22.221.67:5000/coddit/rkn-service-prod:latest
+    - docker push 172.22.221.67:5000/coddit/rkn-service-prod:latest
+
+deploy_production:
+  stage: deploy
+  only: 
+    - deploy/production
+  tags:
+    - rkn-service-prod-ssh-runner
+  before_script:
+    - docker --host outer-worker1 pull 172.22.221.67:5000/coddit/rkn-service-prod:latest
+    - docker --host outer-worker2 pull 172.22.221.67:5000/coddit/rkn-service-prod:latest
+    - docker --host outer-worker3 pull 172.22.221.67:5000/coddit/rkn-service-prod:latest
+  script:
+    - docker service update --force rkn-service_rkn-service
+
+migrations_production:
+  stage: migrations
+  only: 
+    - deploy/production
+  tags:
+    - rkn-service-prod-ssh-runner
+  script:
+    - docker --host $(docker stack ps -q -f name=rkn-service_rkn-service -f "desired-state=running" --format "{{.Node}}" rkn-service) exec $(docker --host $(docker stack ps -q -f name=rkn-service_rkn-service -f "desired-state=running" --format "{{.Node}}" rkn-service) ps -q -f name=rkn-service_rkn-service) php /app/bin/console doctrine:migration:migrate -n

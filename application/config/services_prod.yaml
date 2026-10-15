@@ -1,0 +1,4 @@
+services:
+    App\Twig\FakeDebugExtension:
+        tags:
+            - twig.extension # not needed if you use autoconfiguration

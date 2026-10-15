@@ -1,0 +1,70 @@
+version: '3.3'
+services:
+
+  #######################################################
+  #### БАЗЫ ДАННЫХ - MYSQL ##############################
+  #######################################################
+  mysql:
+    image: 'mysql:8.0'
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    container_name: ${DOCKER_APP_NAME}-mysql
+    restart: always
+    volumes:
+      - 'mysql_data:/var/lib/mysql'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Europe/Moscow
+
+  phpmyadmin:
+    image: 'phpmyadmin/phpmyadmin'
+    container_name: ${DOCKER_APP_NAME}-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      UPLOAD_LIMIT: 100M
+    ports:
+      - '${DOCKER_PMA_PORT}:80'
+    depends_on:
+      - 'mysql'
+
+  #######################################################
+  #### WEB СЕРВЕР #######################################
+  #######################################################
+  app:
+    build:
+      context: ../../
+      dockerfile: docker/production/Dockerfile
+    image: coddit/docker-basic:latest
+    container_name: ${DOCKER_APP_NAME}-app
+    restart: always
+    environment:
+      WEB_DOCUMENT_ROOT: /app/public
+      WEB_DOCUMENT_INDEX: index.php
+      PHP_POST_MAX_SIZE: 100M
+      PHP_UPLOAD_MAX_FILESIZE: 100M
+      PHP_MEMORY_LIMIT: 512M
+      PHP_DATE_TIMEZONE: Europe/Moscow
+    ports:
+      - '${DOCKER_WEB_PORT}:80'
+
+  #######################################################
+  #### СЛУЖЕБНЫЕ СЕРВИСЫ ################################
+  #######################################################
+  redis:
+    image: redis:alpine
+    container_name: ${DOCKER_APP_NAME}-redis
+    restart: always
+    volumes:
+      - 'redis_data:/data'
+
+#########################
+#### ОБЩИЕ НАСТРОЙКИ ####
+#########################
+volumes:
+  mysql_data:
+  redis_data:

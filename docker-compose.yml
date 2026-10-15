@@ -1,0 +1,85 @@
+version: '3.3'
+services:
+
+  #######################################################
+  #### БАЗЫ ДАННЫХ - MYSQL ##############################
+  #######################################################
+  mysql:
+    image: 'mysql:8.0'
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    container_name: ${DOCKER_APP_NAME}-mysql
+    restart: always
+    volumes:
+      - 'mysql_data:/var/lib/mysql'
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      TZ: Europe/Moscow
+
+  phpmyadmin:
+    image: 'phpmyadmin/phpmyadmin'
+    container_name: ${DOCKER_APP_NAME}-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: user
+      PMA_PASSWORD: password
+      UPLOAD_LIMIT: 100M
+    ports:
+      - '${DOCKER_PMA_PORT}:80'
+    depends_on:
+      - 'mysql'
+
+  #######################################################
+  #### WEB СЕРВЕР #######################################
+  #######################################################
+  nginx:
+    image: 'webdevops/nginx'
+    container_name: ${DOCKER_APP_NAME}-nginx
+    working_dir: /var/www/html
+    restart: always
+    environment:
+      WEB_DOCUMENT_ROOT: /var/www/html/public
+      WEB_DOCUMENT_INDEX: index.php
+      WEB_PHP_SOCKET: php-fpm:9000
+    volumes:
+      - ./application:/var/www/html
+    ports:
+      - '${DOCKER_WEB_PORT}:80'
+
+  #######################################################
+  #### PHP ##############################################
+  #######################################################
+  php-fpm:
+    image: 'registry.martnetwork.mart.ru/system/php-fpm-openssl-gost:8.1'
+    container_name: ${DOCKER_APP_NAME}-php-fpm
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - ./application:/var/www/html
+
+  #######################################################
+  #### СЛУЖЕБНЫЕ СЕРВИСЫ ################################
+  #######################################################
+  mailhog:
+    image: 'mailhog/mailhog'
+    container_name: ${DOCKER_APP_NAME}-mailhog
+    restart: always
+    ports:
+      - '${DOCKER_MAIL_PORT}:8025'
+
+  redis:
+    image: redis:alpine
+    container_name: ${DOCKER_APP_NAME}-redis
+    restart: always
+    volumes:
+      - 'redis_data:/data'
+
+#########################
+#### ОБЩИЕ НАСТРОЙКИ ####
+#########################
+volumes:
+  mysql_data:
+  redis_data:
